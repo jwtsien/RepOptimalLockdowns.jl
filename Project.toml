@@ -1,0 +1,7 @@
+name = "RepOptimalLockdowns"
+uuid = "014b7c3f-007c-46f7-9aff-86412a83347c"
+authors = ["Jiawei Qian <144886569+cwzie@users.noreply.github.com>"]
+version = "0.1.0"
+
+[compat]
+julia = "1.10.0"
