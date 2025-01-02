@@ -3,5 +3,8 @@ uuid = "014b7c3f-007c-46f7-9aff-86412a83347c"
 authors = ["Jiawei Qian <144886569+cwzie@users.noreply.github.com>"]
 version = "0.1.0"
 
+[deps]
+FilePathsBase = "48062228-2e41-5def-b9a4-89aafe57970f"
+
 [compat]
 julia = "1.10.0"
