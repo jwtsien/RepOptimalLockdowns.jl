@@ -3,13 +3,13 @@ module RepOptimalLockdowns
 # export the final function
 export run
 
-
-########################################################################################################
-################### Prepare the workfolder in order to save our intermediate results ###################
-########################################################################################################
 using FilePathsBase
 
-# check if the folder exists and create or overwrite it
+"""
+    create_or_overwrite_folder(folder_paths::Vector{String})
+
+This function checks if the folder exists and creates or overwrites it. We need to prepare the workfolders in order to save our results.
+"""
 function create_or_overwrite_folder(folder_paths::Vector{String})
     for folder_path in folder_paths
         # check if the folder exists
@@ -22,7 +22,12 @@ function create_or_overwrite_folder(folder_paths::Vector{String})
     end
 end
 
-# write the function to create all the folders
+
+"""
+    create_my_folders()
+
+This function creates the main folder and subfolders we need.
+"""
 function create_my_folders()
     # first, create the work folder
     mywork_folder_path = "lockdown"
@@ -40,14 +45,6 @@ function create_my_folders()
         subfolder_path_results
     ])
 end
-
-########################################################################################################
-########################################################################################################
-########################################################################################################
-
-
-
-
 
 
 

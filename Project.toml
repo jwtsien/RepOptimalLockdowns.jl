@@ -4,6 +4,7 @@ authors = ["Jiawei Qian <144886569+cwzie@users.noreply.github.com>"]
 version = "0.1.0"
 
 [deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FilePathsBase = "48062228-2e41-5def-b9a4-89aafe57970f"
 
 [compat]
