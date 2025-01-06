@@ -13,11 +13,12 @@ The code was originally developed by the group as part of the final project for 
    ```
 3. Navigate to the project directory
    ```REPL
-   cd RepOptimalLockdowns
+   cd RepOptimalLockdowns.jl
+   julia # enter Julia environment
    ```
 4. Use Julia to activate the environment (use should be in Julia first)
    ```Julia
-   using Pkg
+   # using Pkg
    ]activate . # ] is to enter the package environment
    ```
 5. Delete "]" to return the Julia environment and run the code
@@ -25,14 +26,14 @@ The code was originally developed by the group as part of the final project for 
    using RepOptimalLockdowns # in Julia environment
    RepOptimalLockdowns.run()
    ```
-**Tips:** If you met the error
+**Tips:** If you meet the error
 ```Julia
 ERROR: MethodError: no method matching create_my_directory()
 ```
 just ignore it and run again.
 
 ## Result Structure
-After running the code, a folder named `lockdown` will appear in the same directory, and all results will be saved in that folder.
+After running the code, a folder named `lockdown` will appear in the same directory (just in "/RepOptimalLockdowns.jl"), and all results will be saved in that folder.
 
 - `lockdown/figs` it is use to store the plots.
 - `lockdown/summaryres` it is used to store the final results.
@@ -52,9 +53,11 @@ In Julia, I tried to use first-order difference constraint to replace it.
 # nt is the range of time and we define dt = 1
 @constraint(model, [t in 1:nt-1], (s[t+1] - s[t]) == rs[t])
 ```
-We should notice that in Python, $s$ is still a scalar but in Julia, I have to make $s$ a vector. It may not influence too much in a simple problem but our model is complex and it affects many equations (not only in terms of numerical values but also in terms of data types). Finally, the program and the optimizer ran well but didn't export the same answer with the article. After that, I try to fix it and others pick another approach to replicate the model.
+We should notice that in Python, $s$ is still a scalar but in Julia, I have to make $s$ a vector. It may not influence too much in a simple problem but our model is complex and it affects many equations (not only in terms of numerical values but also in terms of data types). 
 
-Later, I realized that perhaps all the GEKKO variables should be converted into vector form to make them easier for Julia to handle.
+After that, we tried different approaches to replicate the results. Finally, the program and the optimizer ran well but didn't export the same answer with the article.
+
+Later, we realized that perhaps all the GEKKO variables should be converted into vector form to make them easier for Julia to handle.
 
 ## Contact
 For questions or issues, please contact the group at [Tanfei](mailto:tanfei.li@sciencespo.fr).
