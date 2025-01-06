@@ -1,0 +1,2 @@
+tag,Policy,theta,chi,eta,rho,alpha,horison (weeks),Economic Loss,Fatalities,Output Loss,Future Output Loss,FR_y,FR_m,FR_o,d_y,d_m,d_o,sum(ly)/T,sum(lm)/T,sum(lo)/T
+Base,Uniform,0.75,35,0.9,1,2,79,0.02,0.02,0.01,0.01,0.0,0.038461538461538464,0.04761904761904762,0.0,0.01,0.01,0.006329113924050633,0.006329113924050633,0.012658227848101266

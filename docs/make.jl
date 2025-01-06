@@ -5,5 +5,5 @@ makedocs(modules = [RepOptimalLockdowns],
          format = Documenter.HTML()
         )
 deploydocs(
-        repo = "https://github.com/cwzie/RepOptimalLockdowns.jl",
+        repo = "https://github.com/cwzie/RepOptimalLockdowns",
         )
