@@ -29,8 +29,13 @@ The code was originally developed by the group as part of the final project for 
 ## Result Structure
 After running the code, a folder named `lockdown` will appear in the same directory, and all results will be saved in that folder.
 
+- `lockdown/figs` it is use to store the plots.
+- `lockdown/summaryres` it is used to store the final results.
+
 ## Difficulties and Problems
-This part is to explain why we failed to get the corresponding output. We didn't find a great way to handle the first-order differential constraint in Julia. For example, in Python, we can use GEKKO,
+This part is to explain why we failed to get the corresponding output. 
+
+Focused on file `src/GSiROptimalPolicy.jl`. We didn't find a great way to handle the first-order differential constraint in Julia. For example, in Python, we can use GEKKO,
 ```Python
 model = GEKKO(remote = remote)
 ... # add some settings
@@ -40,9 +45,9 @@ model.Equation(s.dt() == rs)
 In Julia, I tried to use first-order difference constraint to replace it.
 ```Julia
 # nt is the range of time and we define dt = 1
-@constraint(model, [t in 1:nt-1], (s[t+1] - s[t]) .== rs)
+@constraint(model, [t in 1:nt-1], (s[t+1] - s[t]) == rs[t])
 ```
-We should notice that in Python, $s$ is still a scalar but in Julia, I have to make $s$ a vector. It may not influence too much in a simple problem but our model is complex and it affects many equations (not only in terms of numerical values but also in terms of data types). Finally, the program ran successfully, but the optimizer did not perform any operations on the problem in `function GSiR_OptimalPolicy(...)` (it seems to be caused by sparsity).
+We should notice that in Python, $s$ is still a scalar but in Julia, I have to make $s$ a vector. It may not influence too much in a simple problem but our model is complex and it affects many equations (not only in terms of numerical values but also in terms of data types). Finally, the program and the optimizer ran well but didn't export the same answer with the article. After that, I try to fix it and others pick another approach to replicate the model. 
 
 ## Contact
 For questions or issues, please contact the group at [Tanfei](mailto:tanfei.li@sciencespo.fr).

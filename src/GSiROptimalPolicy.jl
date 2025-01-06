@@ -1,4 +1,10 @@
 using JuMP, Ipopt, DifferentialEquations, LinearAlgebra, CSV, DataFrames
+
+"""
+    GSiR_OptimalPolicy()
+
+This function solves the optimal policy problem for the GSiR model. The function takes in a number of parameters that define the model and the policy to be solved. The function returns a dictionary of results and saves the results in a .csv file.
+"""
 function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
                             beta= .134*7*.8,       # contagiousness (infection rate)
                             recovery= 18,          # length of resolution in days (ask for separate code if you want to split out exposure and infection periods)
@@ -30,10 +36,8 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
                             economyfirst = .1,     # Econ Cost loss Constraint in Economy First Policy
                             # plot=true,             # Plotting True or False
                             tag="Test",            # Supply a tag for files or figures; can be any character string
-                            # etatag=".9",           # supply a tag for testing; can be any character string
                             icubound=false,        # Turn off ICU constraint; set True to turn on
                             htbound =.016,         # ICU implied bound on weighted infection rate
-                            # ftag="",               # additional file tag to put in front of model id resut.
                             path="lockdown/",      # path to folder where models and results will be stored/ require subfolders /figs, /summaryres
                             summary=true)         # turn on summary of results being written out in a table
     
@@ -49,7 +53,6 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
 
     ######################## Modeling ##########################
     # Define variables and parameters
-    time = LinRange(1, nt, nt)         # time space
     p = zeros(nt); p[end] = 1.0     # mark final time point
     final = p                       # parameter for final time point
     t = 1:nt                  # weeks
@@ -168,25 +171,25 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
     @expression(model, rtpop, - (rs + rsm + rso) ./ (i .* gamma + im .* gamma + io .* gamma))               # RR population
 
     # Define the SIR Equations
-    @constraint(model, [t in 1:nt-1], (s[t+1] .- s[t]) .== rs)              # change in susceptible young
-    @constraint(model, [t in 1:nt-1], (i[t+1] .- i[t]) .== -rs .- gamma * i[t])  # change in infected young
-    @constraint(model, [t in 1:nt-1], (d[t+1] .- d[t]) .== rd)              # change in death young
-    @constraint(model, [t in 1:nt-1], (re[t+1] .- re[t]) .== rre)             # change in recovered young
+    @constraint(model, [t in 1:nt-1], (s[t+1] - s[t]) == rs[t])              # change in susceptible young
+    @constraint(model, [t in 1:nt-1], (i[t+1] - i[t]) == -rs[t] - gamma * i[t])  # change in infected young
+    @constraint(model, [t in 1:nt-1], (d[t+1] - d[t]) == rd[t])              # change in death young
+    @constraint(model, [t in 1:nt-1], (re[t+1] - re[t]) == rre[t])             # change in recovered young
     # then we do the same to middle and old
-    @constraint(model, [t in 1:nt-1], (sm[t+1] .- sm[t]) .== rsm)
-    @constraint(model, [t in 1:nt-1], (im[t+1] .- im[t]) .== -rsm .- gamma * im[t])
-    @constraint(model, [t in 1:nt-1], (dm[t+1] .- dm[t]) .== rdm)
-    @constraint(model, [t in 1:nt-1], (rem[t+1].- rem[t]) .== rrem)
-    @constraint(model, [t in 1:nt-1], (so[t+1] .- so[t]) .== rso)
-    @constraint(model, [t in 1:nt-1], (io[t+1] .- io[t]) .== -rso .- gamma * io[t])
-    @constraint(model, [t in 1:nt-1], (dol[t+1] .- dol[t]) .== rdo)
-    @constraint(model, [t in 1:nt-1], (reo[t+1] .- reo[t]) .== rreo)
+    @constraint(model, [t in 1:nt-1], (sm[t+1] - sm[t]) == rsm[t])
+    @constraint(model, [t in 1:nt-1], (im[t+1] - im[t]) == -rsm[t] - gamma * im[t])
+    @constraint(model, [t in 1:nt-1], (dm[t+1] - dm[t]) == rdm[t])
+    @constraint(model, [t in 1:nt-1], (rem[t+1] - rem[t]) == rrem[t])
+    @constraint(model, [t in 1:nt-1], (so[t+1] - so[t]) == rso[t])
+    @constraint(model, [t in 1:nt-1], (io[t+1] - io[t]) == -rso[t] - gamma * io[t])
+    @constraint(model, [t in 1:nt-1], (dol[t+1] - dol[t]) == rdo[t])
+    @constraint(model, [t in 1:nt-1], (reo[t+1] - reo[t]) == rreo[t])
 
     # Equation for Cost Flows
-    @constraint(model, [t in 1:nt-1], (co[t+1] - co[t]) .== ksi .* df .* (w .* (l .* s .+ l .* (1 .- ppi) .* re .+ (1 .- eta .* (1 .- l)) .* i) .+ w .* wr .* (lm .* sm .+ lm .* (1 .- ppi) .* rem .+ (1 .- eta .* (1 .- lm)) .* im) .+ w .* wro .* (lo .* so .+ lo .* (1 .- ppi) .* reo .+ (1 .- eta .* (1 .- lo)) .* io)))  # cost function -- flow
-    @constraint(model, [t in 1:nt-1], (cd[t+1] - cd[t]) .== df .* (ev .* rd .+ ev .* evr .* rdm .+ ev .* evro .* rdo))  # death cost -- flow
-    @constraint(model, [t in 1:nt-1], (ce[t+1] - ce[t]) .== df .* chi .* (rd .+ rdm .+ rdo))  # emotional cost -- flow
-    @constraint(model, [t in 1:nt-1], (cf[t+1] - cf[t]) .== (co[t+1]-co[t])+(cd[t+1]-cd[t])+(ce[t+1]-ce[t]))  # financial cost -- flow
+    @constraint(model, [t in 1:nt-1], (co[t+1] - co[t]) == ksi * df[t] * (w * (l * s[t] + l * (1 - ppi) * re[t] + (1 - eta * (1 - l)) * i[t]) + w * wr * (lm * sm[t] + lm * (1 - ppi) * rem[t] + (1 - eta * (1 - lm)) * im[t]) + w * wro * (lo * so[t] + lo * (1 - ppi) * reo[t] + (1 - eta * (1 - lo)) * io[t])))  # cost function -- flow
+    @constraint(model, [t in 1:nt-1], (cd[t+1] - cd[t]) == df[t] * (ev * rd[t] + ev * evr * rdm[t] + ev * evro * rdo[t]))  # death cost -- flow
+    @constraint(model, [t in 1:nt-1], (ce[t+1] - ce[t]) == df[t] * chi * (rd[t] + rdm[t] + rdo[t]))  # emotional cost -- flow
+    @constraint(model, [t in 1:nt-1], (cf[t+1] - cf[t]) == (co[t+1]-co[t])+(cd[t+1]-cd[t])+(ce[t+1]-ce[t]))  # financial cost -- flow
 
     # Implied ICU constraint
     if icubound == true
@@ -219,8 +222,9 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
     optimize!(model)
 
     ################### GETTING THE RESULTS ####################
-    # Access the results
-    # optimal_values = value.(model[:s])  # for example, to get the optimal values of the susceptible young
+    # summary of results directory
+    summaryres_dir = path * "summaryres/"
+    
     
     # Create result container (assuming `result_container` is a defined structure in your code)
     result = Dict()
@@ -265,7 +269,6 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
         "sum(ly)/T", "sum(lm)/T", "sum(lo)/T"
     ]
 
-    summaryres_dir = path * "summaryres/"
     # save the result into a .csv file
     if summary == true
         fname = summaryres_dir * "summary.csv"
@@ -275,5 +278,6 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
             CSV.write(fname, DataFrame(permutedims(sumtable), :auto), append = true)
         end
     end
+
     return result
 end
