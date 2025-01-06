@@ -23,7 +23,7 @@ end
 
 This function creates the main folder and subfolders we need.
 """
-function create_my_folders()
+function create_my_directory()
     # first, create the work folder
     mywork_folder_path = "lockdown"
 

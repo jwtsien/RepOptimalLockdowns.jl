@@ -9,7 +9,7 @@ The code was originally developed by the group as part of the final project for 
 1. Please make sure that you have julia
 2. Clone the repository to your local machine
    ```
-   git clone https://github.com/cwzie/RepOptimalLockdowns
+   git clone https://github.com/cwzie/RepOptimalLockdowns.jl
    ```
 3. Navigate to the project directory
    ```REPL
@@ -25,6 +25,11 @@ The code was originally developed by the group as part of the final project for 
    using RepOptimalLockdowns # in Julia environment
    RepOptimalLockdowns.run()
    ```
+**Tips:** If you met the error
+```Julia
+ERROR: MethodError: no method matching create_my_directory()
+```
+just ignore it and run again.
 
 ## Result Structure
 After running the code, a folder named `lockdown` will appear in the same directory, and all results will be saved in that folder.
@@ -47,7 +52,9 @@ In Julia, I tried to use first-order difference constraint to replace it.
 # nt is the range of time and we define dt = 1
 @constraint(model, [t in 1:nt-1], (s[t+1] - s[t]) == rs[t])
 ```
-We should notice that in Python, $s$ is still a scalar but in Julia, I have to make $s$ a vector. It may not influence too much in a simple problem but our model is complex and it affects many equations (not only in terms of numerical values but also in terms of data types). Finally, the program and the optimizer ran well but didn't export the same answer with the article. After that, I try to fix it and others pick another approach to replicate the model. 
+We should notice that in Python, $s$ is still a scalar but in Julia, I have to make $s$ a vector. It may not influence too much in a simple problem but our model is complex and it affects many equations (not only in terms of numerical values but also in terms of data types). Finally, the program and the optimizer ran well but didn't export the same answer with the article. After that, I try to fix it and others pick another approach to replicate the model.
+
+Later, I realized that perhaps all the GEKKO variables should be converted into vector form to make them easier for Julia to handle.
 
 ## Contact
 For questions or issues, please contact the group at [Tanfei](mailto:tanfei.li@sciencespo.fr).

@@ -1,4 +1,4 @@
-using JuMP, Ipopt, DifferentialEquations, LinearAlgebra, CSV, DataFrames
+using JuMP, Ipopt, DifferentialEquations, LinearAlgebra, CSV, DataFrames, Plots
 
 """
     GSiR_OptimalPolicy()
@@ -93,7 +93,7 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
     wh = sh_y * wfh      # share of young who can work from home
     @variable(model, s[1:nt] >= 0, start = Si * sh_y, base_name = "s")                 # susceptible young/total initial population
     @variable(model, i[1:nt] >= 0, start = Ii * sh_y, base_name = "i")                 # share of infected young
-    @variable(model, 0 <= l <= 0.7 - wfh, start = l0, base_name = "l")                 # lockdown initial value (control)
+    @variable(model, 0 <= l[1:nt] <= 0.7 - wfh, start = l0, base_name = "l")                 # lockdown initial value (control)
     @variable(model, d[1:nt] >= 0, start = 0, base_name =  "d")                 # share of death young
     @variable(model, re[1:nt], start = Ri * sh_y, base_name = "re")                # share of recovered young
 
@@ -104,7 +104,7 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
     @constraint(model, sm[1] == Si * sh_m)
     @variable(model, im[1:nt] >= 0, start = Ii * sh_m, base_name = "im")
     @constraint(model, im[1] == Ii * sh_m)
-    @variable(model, 0 <= lm <= 0.7 - wfh, start = l0, base_name = "lm")
+    @variable(model, 0 <= lm[1:nt] <= 0.7 - wfh, start = l0, base_name = "lm")
     @variable(model, dm[1:nt] >= 0, start = 0.01, base_name =  "dm")
     @variable(model, rem[1:nt], start = Ri * sh_m, base_name = "rem")
 
@@ -115,7 +115,7 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
     @constraint(model, so[1] == Si * sh_o)
     @variable(model, io[1:nt] >= 0, start = Ii * sh_o, base_name = "io")
     @constraint(model, io[1] == Ii * sh_o)
-    @variable(model, 0 <= lo <= 1, start = 1, base_name = "lo")
+    @variable(model, 0 <= lo[1:nt] <= 1, start = 1, base_name = "lo")
     @variable(model, dol[1:nt] >= 0, start = 0.01, base_name =  "do")
     @variable(model, reo[1:nt], start = Ri * sh_o, base_name = "reo")
 
@@ -154,12 +154,12 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
     @expression(model, uio, eta .* io)  # un-isolated infected for old
 
     ## Matching/Network Multipliers
-    @expression(model, gmm, (((s .+ ui .+ (1 .- ppi) .* re) .* (1 .- theta .* l .- theta .* wh) .+ ppi .* re) .+ rho .* ((sm .+ uim .+ (1 - ppi) .* rem) .* (1 - theta .* lm .- theta .* whm) .+ ppi .* rem) .+ rhoo .* ((so .+ uio .+ (1 .- ppi) .* reo) .* (1 .- thetao .* lo .- thetao .* who) .+ ppi .* reo)).^(alpha - 2))
-    @expression(model, gmmm, (rho .* ((s .+ ui .+ (1 .- ppi) .* re) .* (1 - theta .* l - theta .* wh) + ppi .* re) .+ ((sm .+ uim .+ (1 - ppi) .* rem) .* (1 - theta .* lm .- theta .* whm) .+ ppi .* rem) .+ rhoo .* ((so .+ uio .+ (1 - ppi) .* reo) .* (1 .- thetao .* lo - thetao .* who) .+ ppi .* reo)).^(alpha - 2))
+    @expression(model, gmm, (((s .+ ui .+ (1 .- ppi) .* re) .* (1 .- theta .* l .- theta .* wh) .+ ppi .* re) .+ rho .* ((sm .+ uim .+ (1 - ppi) .* rem) .* (1 .- theta .* lm .- theta .* whm) .+ ppi .* rem) .+ rhoo .* ((so .+ uio .+ (1 - ppi) .* reo) .* (1 .- thetao .* lo .- thetao .* who) .+ ppi .* reo)).^(alpha - 2))
+    @expression(model, gmmm, (rho .* ((s .+ ui .+ (1 - ppi) .* re) .* (1 .- theta .* l .- theta .* wh) .+ ppi .* re) .+ ((sm .+ uim .+ (1 - ppi) .* rem) .* (1 .- theta .* lm .- theta .* whm) .+ ppi .* rem) .+ rhoo .* ((so .+ uio .+ (1 - ppi) .* reo) .* (1 .- thetao .* lo .- thetao .* who) .+ ppi .* reo)).^(alpha - 2))
     @expression(model, gmmo, (rhoo .* ((s .+ ui .+ (1 .- ppi) .* re) .* (1 .- theta .* l .- theta .* wh) .+ ppi .* re) .+ rhoo .* ((sm .+ uim .+ (1 .- ppi) .* rem) .* (1 .- theta .* lm .- theta .* whm) .+ ppi .* rem) .+ ((so .+ uio .+ (1 .- ppi) .* reo) .* (1 .- thetao .* lo .- thetao .* who) .+ ppi .* reo)).^(alpha - 2))
 
     ## Change in Susceptibles y, m, o
-    @expression(model, rs, -beta .* s .* (1 - theta .* l - theta .* wh) .* (ui .* (1 .- theta .* l .- theta .* wh) .+ rho .* uim .* (1 .- theta .* lm .- theta .* whm) .+ rhoo .* uio .* (1 .- thetao .* lo .- thetao .* who)) .* gmm)
+    @expression(model, rs, -beta .* s .* (1 .- theta .* l .- theta .* wh) .* (ui .* (1 .- theta .* l .- theta .* wh) .+ rho .* uim .* (1 .- theta .* lm .- theta .* whm) .+ rhoo .* uio .* (1 .- thetao .* lo .- thetao .* who)) .* gmm)
     @expression(model, rsm, -beta .* sm .* (1 .- theta .* lm .- theta .* whm) .* (rho .* ui .* (1 .- theta .* l .- theta .* wh) .+ uim .* (1 .- theta .* lm .- theta .* whm) .+ rhoo .* uio .* (1 .- thetao .* lo .- thetao .* who)) .* gmmm)
     @expression(model, rso, -beta .* so .* (1 .- thetao .* lo .- thetao .* who) .* (rhoo .* ui .* (1 .- theta .* l .- theta .* wh) .+ rhoo .* uim .* (1 .- theta .* lm .- theta .* whm) .+ uio .* (1 .- thetao .* lo .- thetao .* who)) .* gmmo)
 
@@ -186,7 +186,7 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
     @constraint(model, [t in 1:nt-1], (reo[t+1] - reo[t]) == rreo[t])
 
     # Equation for Cost Flows
-    @constraint(model, [t in 1:nt-1], (co[t+1] - co[t]) == ksi * df[t] * (w * (l * s[t] + l * (1 - ppi) * re[t] + (1 - eta * (1 - l)) * i[t]) + w * wr * (lm * sm[t] + lm * (1 - ppi) * rem[t] + (1 - eta * (1 - lm)) * im[t]) + w * wro * (lo * so[t] + lo * (1 - ppi) * reo[t] + (1 - eta * (1 - lo)) * io[t])))  # cost function -- flow
+    @constraint(model, [t in 1:nt-1], (co[t+1] - co[t]) == ksi * df[t] * (w * (l[t] * s[t] + l[t] * (1 - ppi) * re[t] + (1 - eta * (1 - l[t])) * i[t]) + w * wr * (lm[t] * sm[t] + lm[t] * (1 - ppi) * rem[t] + (1 - eta * (1 - lm[t])) * im[t]) + w * wro * (lo[t] * so[t] + lo[t] * (1 - ppi) * reo[t] + (1 - eta * (1 - lo[t])) * io[t])))  # cost function -- flow
     @constraint(model, [t in 1:nt-1], (cd[t+1] - cd[t]) == df[t] * (ev * rd[t] + ev * evr * rdm[t] + ev * evro * rdo[t]))  # death cost -- flow
     @constraint(model, [t in 1:nt-1], (ce[t+1] - ce[t]) == df[t] * chi * (rd[t] + rdm[t] + rdo[t]))  # emotional cost -- flow
     @constraint(model, [t in 1:nt-1], (cf[t+1] - cf[t]) == (co[t+1]-co[t])+(cd[t+1]-cd[t])+(ce[t+1]-ce[t]))  # financial cost -- flow
@@ -278,6 +278,33 @@ function GSiR_OptimalPolicy(;theta=.75,             # lockdown effectiveness
             CSV.write(fname, DataFrame(permutedims(sumtable), :auto), append = true)
         end
     end
+
+    fig_path = path * "figs/"
+    fig_file = fig_path * "$(tag)_$(policy)_$(typefull).pdf"
+    # Set up the subplots
+    p = plot(layout = (1, 2), size = (500, 300))
+
+    # Plot the Lockdown Policy (first subplot)
+    plot!(p[1], range(2, nt, length=nt-1).*7, value.(l)[2:nt], label="young", linestyle=:solid, marker=:circle, markersize=3, color=:blue)
+    plot!(p[1], range(2, nt, length=nt-1).*7, value.(lm)[2:nt], label="middle", linestyle=:solid, marker=:plus, markersize=3, color=:blue)
+    plot!(p[1], range(2, nt, length=nt-1).*7, value.(lo)[2:nt], label="old", linestyle=:dash, marker=:circle, markersize=3, color=:blue)
+    plot!(p[1], ylim = (-0.02, 1.02))
+    plot!(p[1], legend = :bottomright)
+    xlabel!(p[1], "Time (weeks)")
+    ylabel!(p[1], "Lockdown Policy")
+
+    # Plot the Infection Rates (second subplot)
+    plot!(p[2], range(2, nt, length=nt-1).*7, value.(i)[2:nt] ./ sh_y, label="young", linestyle=:solid, marker=:circle, markersize=3, color=:blue)
+    plot!(p[2], range(2, nt, length=nt-1).*7, value.(im)[2:nt] ./ sh_m, label="middle", linestyle=:solid, marker=:plus, markersize=3, color=:blue)
+    plot!(p[2], range(2, nt, length=nt-1).*7, value.(io)[2:nt] ./ sh_o, label="old", linestyle=:dash, marker=:circle, markersize=3, color=:blue)
+    plot!(p[2], ylim = (-0.001, 0.15))
+    plot!(p[2], legend = :bottomright)
+    xlabel!(p[2], "Time (weeks)")
+    ylabel!(p[2], "Infection Rate")
+
+    # Set the overall figure title
+    savefig(fig_file)
+
 
     return result
 end

@@ -1,3 +1,3 @@
 var documenterSearchIndex = {"docs":
-[{"location":"","page":"-","title":"-","text":"Modules = [RepOptimalLockdowns]\nOrder   = [:function, :type]","category":"page"},{"location":"#RepOptimalLockdowns.create_my_folders-Tuple{}","page":"-","title":"RepOptimalLockdowns.create_my_folders","text":"create_my_folders()\n\nThis function creates the main folder and subfolders we need.\n\n\n\n\n\n","category":"method"},{"location":"#RepOptimalLockdowns.create_or_overwrite_folder-Tuple{Vector{String}}","page":"-","title":"RepOptimalLockdowns.create_or_overwrite_folder","text":"create_or_overwrite_folder(folder_paths::Vector{String})\n\nThis function checks if the folder exists and creates or overwrites it. We need to prepare the workfolders in order to save our results.\n\n\n\n\n\n","category":"method"}]
+[{"location":"","page":"-","title":"-","text":"Modules = [RepOptimalLockdowns]\nOrder   = [:function, :type]","category":"page"}]
 }
