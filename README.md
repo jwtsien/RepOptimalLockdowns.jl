@@ -60,5 +60,5 @@ After that, we tried different approaches to replicate the results. Finally, the
 Later, we realized that perhaps all the GEKKO variables should be converted into vector form to make them easier for Julia to handle.
 
 ## Contact
-For questions or issues, please contact the group at [Tanfei](mailto:tanfei.li@sciencespo.fr).
+For questions or issues, please contact the group at [Jiawei](mailto:jiawei.qian@sciencespo.fr) or [Tanfei](mailto:tanfei.li@sciencespo.fr).
 
